@@ -1,3 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Controle Financeiro com Histórico Organizado</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f2f5;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 720px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  }
+  h2, h3 {
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+  input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  button {
+    width: 100%;
+    margin-top: 25px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    transition: background-color .3s;
+  }
+  button:hover {
+    background-color: #218838;
+  }
+  #btn-investimento {
+    background-color: #007bff;
+    margin-top: 10px;
+  }
+  #btn-investimento:hover {
+    background-color: #0056b3;
+  }
+  textarea {
+    width: 100%;
+    height: 180px;
+    margin-top: 10px;
+    padding: 10px;
+    font-family: monospace;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+    white-space: pre-line;
+  }
+  .entrada-bloco {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .entrada-bloco > div {
+    flex: 1 1 48%;
+    min-width: 300px;
+  }
+</style>
+</head>
+<body>
 
+<div class="container">
+  <h2>📒 Controle Financeiro com Histórico Organizado</h2>
+
+  <button id="btn-investimento" onclick="mostrarInvestimento()">📈 Ver valor em Investimento</button>
+
+  <h3>Entradas com data digitada (Altere no formulário)</h3>
+  <div class="entrada-bloco">
+    <div>
+      <label>📝 Entrada 1 Origem:</label>
+      <input type="text" id="origem1" value="Cliente X" />
+      <label>📅 Data Digitada:</label>
+      <input type="date" id="data1" />
+      <label>💵 Valor (R$):</label>
+      <input type="number" id="valor1" step="0.01" value="200" />
+    </div>
+    <div>
+      <label>📝 Entrada 2 Origem:</label>
+      <input type="text" id="origem2" value="Cliente Y" />
+      <label>📅 Data Digitada:</label>
+      <input type="date" id="data2" />
+      <label>💵 Valor (R$):</label>
+      <input type="number" id="valor2" step="0.01" value="350" />
+    </div>
+  </div>
+
+  <h3>Entradas com data programada fixa (Altere datas no código)</h3>
+  <div class="entrada-bloco">
+    <div>
+      <label>📝 Entrada 3 Origem:</label>
+      <input type="text" id="origem3" value="Cliente A" />
+      <label>💵 Valor (R$):</label>
+      <input type="number" id="valor3" step="0.01" value="300" />
+    </div>
+    <div>
+      <label>📝 Entrada 4 Origem:</label>
+      <input type="text" id="origem4" value="Cliente B" />
+      <label>💵 Valor (R$):</label>
+      <input type="number" id="valor4" step="0.01" value="300" />
+    </div>
+  </div>
+
+  <button onclick="registrarEntradas()">Registrar Entradas</button>
+
+  <div class="bloco">
+    <h3>💰 Total Atual: <span id="total">R$ 0.00</span></h3>
+    <div class="titulo-divisao">📊 Divisão Atual:</div>
+    <div id="divisao"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>📜 Histórico</h3>
+    <textarea id="historico" readonly></textarea>
+  </div>
+</div>
+
+<script>
+  const datasProgramadas = {
+    3: '2025-07-15',
+    4: '2025-07-20'
+  };
+
+  let ultimoInvestimento = 0;
+
+  function formatDataHora(d) {
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+  }
+
+  function salvarDadosLocal(total, historico, divisaoHTML) {
+    localStorage.setItem('total', total.toFixed(2));
+    localStorage.setItem('historico', historico);
+    localStorage.setItem('divisao', divisaoHTML);
+    localStorage.setItem('investimento', ultimoInvestimento.toFixed(2));
+  }
+
+  function carregarDadosSalvos() {
+    const total = localStorage.getItem('total');
+    const historico = localStorage.getItem('historico');
+    const divisao = localStorage.getItem('divisao');
+    const investimento = localStorage.getItem('investimento');
+
+    if (total) document.getElementById("total").textContent = `R$ ${parseFloat(total).toFixed(2)}`;
+    if (historico) document.getElementById("historico").value = historico;
+    if (divisao) document.getElementById("divisao").innerHTML = divisao;
+    if (investimento) ultimoInvestimento = parseFloat(investimento);
+  }
+
+  function mostrarInvestimento() {
+    alert("📈 Valor atual em Investimento: R$ " + (ultimoInvestimento.toFixed(2)));
+  }
+
+  function registrarEntradas() {
+    const hoje = new Date();
+    let total = parseFloat(localStorage.getItem('total')) || 0;
+    let historicoNovo = '';
+
+    for(let i =1; i <=2; i++) {
+      const origem = document.getElementById(`origem${i}`).value.trim();
+      const valor = parseFloat(document.getElementById(`valor${i}`).value);
+      const dataStr = document.getElementById(`data${i}`).value;
+
+      if(!origem || isNaN(valor) || valor <= 0 || !dataStr) continue;
+
+      const dataEntrada = new Date(dataStr);
+      if(dataEntrada <= hoje) {
+        total += valor;
+        historicoNovo += `📅 ${formatDataHora(new Date())}\nCliente: ${origem}\nValor: R$ ${valor.toFixed(2)}\n------------------------------\n`;
+      }
+    }
+
+    for(let i = 3; i <=4; i++) {
+      const origem = document.getElementById(`origem${i}`).value.trim();
+      const valor = parseFloat(document.getElementById(`valor${i}`).value);
+      const dataStr = datasProgramadas[i];
+
+      if(!origem || isNaN(valor) || valor <= 0 || !dataStr) continue;
+
+      const dataEntrada = new Date(dataStr);
+      if(dataEntrada <= hoje) {
+        total += valor;
+        historicoNovo += `📅 ${formatDataHora(new Date())}\nCliente: ${origem}\nValor: R$ ${valor.toFixed(2)}\n------------------------------\n`;
+      }
+    }
+
+    document.getElementById("total").textContent = `R$ ${total.toFixed(2)}`;
+
+    const dizimo = total * 0.10;
+    const contas = total * 0.30;
+    const alimentacao = total * 0.30;
+    const investimento = total * 0.30;
+
+    ultimoInvestimento = investimento;
+
+    const divisaoHTML = `
+      <ul>
+        <li>🛐 Dízimo (10%): R$ ${dizimo.toFixed(2)}</li>
+        <li>💡 Contas (30%): R$ ${contas.toFixed(2)}</li>
+        <li>🍽️ Alimentação (30%): R$ ${alimentacao.toFixed(2)}</li>
+        <li>📈 Investimento (30%): R$ ${investimento.toFixed(2)}</li>
+      </ul>
+    `;
+
+    document.getElementById("divisao").innerHTML = divisaoHTML;
+    document.getElementById("historico").value += historicoNovo;
+
+    salvarDadosLocal(total, document.getElementById("historico").value, divisaoHTML);
+  }
+
+  window.onload = carregarDadosSalvos;
+</script>
+
+</body>
+</html>
 
 
