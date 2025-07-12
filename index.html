@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -48,13 +49,6 @@
   button:hover {
     background-color: #218838;
   }
-  #btn-investimento {
-    background-color: #007bff;
-    margin-top: 10px;
-  }
-  #btn-investimento:hover {
-    background-color: #0056b3;
-  }
   textarea {
     width: 100%;
     height: 180px;
@@ -75,14 +69,20 @@
     flex: 1 1 48%;
     min-width: 300px;
   }
+  /* Estilo para o botão olho */
+  #toggle-investimento {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 8px;
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
   <h2>📒 Controle Financeiro com Histórico Organizado</h2>
-
-  <button id="btn-investimento" onclick="mostrarInvestimento()">📈 Ver valor em Investimento</button>
 
   <h3>Entradas com data digitada (Altere no formulário)</h3>
   <div class="entrada-bloco">
@@ -140,8 +140,6 @@
     4: '2025-07-20'
   };
 
-  let ultimoInvestimento = 0;
-
   function formatDataHora(d) {
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
   }
@@ -150,23 +148,33 @@
     localStorage.setItem('total', total.toFixed(2));
     localStorage.setItem('historico', historico);
     localStorage.setItem('divisao', divisaoHTML);
-    localStorage.setItem('investimento', ultimoInvestimento.toFixed(2));
   }
 
   function carregarDadosSalvos() {
     const total = localStorage.getItem('total');
     const historico = localStorage.getItem('historico');
     const divisao = localStorage.getItem('divisao');
-    const investimento = localStorage.getItem('investimento');
 
     if (total) document.getElementById("total").textContent = `R$ ${parseFloat(total).toFixed(2)}`;
     if (historico) document.getElementById("historico").value = historico;
-    if (divisao) document.getElementById("divisao").innerHTML = divisao;
-    if (investimento) ultimoInvestimento = parseFloat(investimento);
+    if (divisao) {
+      document.getElementById("divisao").innerHTML = divisao;
+
+      // Recria o evento do botão olho ao carregar dados salvos
+      const btn = document.getElementById("toggle-investimento");
+      if (btn) {
+        btn.addEventListener('click', toggleInvestimento);
+      }
+    }
   }
 
-  function mostrarInvestimento() {
-    alert("📈 Valor atual em Investimento: R$ " + (ultimoInvestimento.toFixed(2)));
+  function toggleInvestimento() {
+    const elem = document.getElementById("investimento-valor");
+    if (elem.textContent === "••••••••") {
+      elem.textContent = `R$ ${window.valorInvestimento.toFixed(2)}`;
+    } else {
+      elem.textContent = "••••••••";
+    }
   }
 
   function registrarEntradas() {
@@ -209,18 +217,26 @@
     const alimentacao = total * 0.30;
     const investimento = total * 0.30;
 
-    ultimoInvestimento = investimento;
+    // Salva o valor investimento globalmente para usar na função toggle
+    window.valorInvestimento = investimento;
 
     const divisaoHTML = `
       <ul>
         <li>🛐 Dízimo (10%): R$ ${dizimo.toFixed(2)}</li>
         <li>💡 Contas (30%): R$ ${contas.toFixed(2)}</li>
         <li>🍽️ Alimentação (30%): R$ ${alimentacao.toFixed(2)}</li>
-        <li>📈 Investimento (30%): R$ ${investimento.toFixed(2)}</li>
+        <li>📈 Investimento (30%): 
+          <span id="investimento-valor" style="user-select:none;">••••••••</span>
+          <button id="toggle-investimento" aria-label="Mostrar/ocultar investimento">👁️</button>
+        </li>
       </ul>
     `;
 
     document.getElementById("divisao").innerHTML = divisaoHTML;
+
+    // Adiciona evento ao botão olho
+    document.getElementById("toggle-investimento").addEventListener('click', toggleInvestimento);
+
     document.getElementById("historico").value += historicoNovo;
 
     salvarDadosLocal(total, document.getElementById("historico").value, divisaoHTML);
