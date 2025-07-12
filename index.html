@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -69,7 +68,7 @@
     flex: 1 1 48%;
     min-width: 300px;
   }
-  /* Estilo para o botão olho */
+  /* Estilo para o botão olho no investimento */
   #toggle-investimento {
     background: none;
     border: none;
@@ -150,30 +149,44 @@
     localStorage.setItem('divisao', divisaoHTML);
   }
 
-  function carregarDadosSalvos() {
-    const total = localStorage.getItem('total');
-    const historico = localStorage.getItem('historico');
-    const divisao = localStorage.getItem('divisao');
-
-    if (total) document.getElementById("total").textContent = `R$ ${parseFloat(total).toFixed(2)}`;
-    if (historico) document.getElementById("historico").value = historico;
-    if (divisao) {
-      document.getElementById("divisao").innerHTML = divisao;
-
-      // Recria o evento do botão olho ao carregar dados salvos
-      const btn = document.getElementById("toggle-investimento");
-      if (btn) {
-        btn.addEventListener('click', toggleInvestimento);
-      }
-    }
-  }
-
   function toggleInvestimento() {
     const elem = document.getElementById("investimento-valor");
     if (elem.textContent === "••••••••") {
       elem.textContent = `R$ ${window.valorInvestimento.toFixed(2)}`;
     } else {
       elem.textContent = "••••••••";
+    }
+  }
+
+  function carregarDadosSalvos() {
+    const total = localStorage.getItem('total');
+    const historico = localStorage.getItem('historico');
+
+    if (total) document.getElementById("total").textContent = `R$ ${parseFloat(total).toFixed(2)}`;
+    if (historico) document.getElementById("historico").value = historico;
+
+    if (total) {
+      const totalNum = parseFloat(total);
+      const dizimo = totalNum * 0.10;
+      const contas = totalNum * 0.30;
+      const alimentacao = totalNum * 0.30;
+      const investimento = totalNum * 0.30;
+      window.valorInvestimento = investimento;
+
+      const divisaoHTML = `
+        <ul>
+          <li>🛐 Dízimo (10%): R$ ${dizimo.toFixed(2)}</li>
+          <li>💡 Contas (30%): R$ ${contas.toFixed(2)}</li>
+          <li>🍽️ Alimentação (30%): R$ ${alimentacao.toFixed(2)}</li>
+          <li>📈 Investimento (30%): 
+            <span id="investimento-valor" style="user-select:none;">••••••••</span>
+            <button id="toggle-investimento" aria-label="Mostrar/ocultar investimento">👁️</button>
+          </li>
+        </ul>
+      `;
+
+      document.getElementById("divisao").innerHTML = divisaoHTML;
+      document.getElementById("toggle-investimento").addEventListener('click', toggleInvestimento);
     }
   }
 
@@ -217,7 +230,6 @@
     const alimentacao = total * 0.30;
     const investimento = total * 0.30;
 
-    // Salva o valor investimento globalmente para usar na função toggle
     window.valorInvestimento = investimento;
 
     const divisaoHTML = `
@@ -233,8 +245,6 @@
     `;
 
     document.getElementById("divisao").innerHTML = divisaoHTML;
-
-    // Adiciona evento ao botão olho
     document.getElementById("toggle-investimento").addEventListener('click', toggleInvestimento);
 
     document.getElementById("historico").value += historicoNovo;
@@ -247,5 +257,3 @@
 
 </body>
 </html>
-
-
